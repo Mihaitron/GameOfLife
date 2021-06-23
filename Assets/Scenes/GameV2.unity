@@ -215,7 +215,7 @@ GameObject:
   - component: {fileID: 1736978206}
   - component: {fileID: 1736978205}
   m_Layer: 0
-  m_Name: Grid
+  m_Name: GameManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -230,7 +230,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1736978204}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2f2dbe617e08f243b33645c5cc7d957, type: 3}
+  m_Script: {fileID: 11500000, guid: e3385e66b79c97b489f4017776ef8379, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   width: 10

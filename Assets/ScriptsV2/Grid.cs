@@ -1,73 +1,25 @@
-﻿using UnityEngine;
+﻿using System.Numerics;
 
-public class Grid : MonoBehaviour
+public class Grid
 {
-    [SerializeField] private int width;
-    [SerializeField] private int height;
-    [SerializeField] private Camera camera;
-
+    private int width;
+    private int height;
+    private static Vector2 center;
+    private static Vector2 offset;
     private GridCell[,] grid;
     private GridCell[,] futureGrid;
-    private Vector2 center;
-    private Vector2 offset;
-    private bool start;
 
-    private void Awake()
+    public Grid(int width, int height, float x, float y)
     {
-        this.Initialize();
-    }
-
-    private void Update()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            Vector3 screen_mouse_pos = Input.mousePosition;
-            Vector2 world_mouse_pos = this.camera.ScreenToWorldPoint(screen_mouse_pos);
-            Vector2 cell_point = this.GameToGridCoordinates(world_mouse_pos);
-
-            Debug.Log(world_mouse_pos);
-            Debug.Log(cell_point);
-
-            if (this.IsWithinGridBounds(world_mouse_pos))
-            {
-                GridCell cell = this.grid[(int) cell_point.x, (int) cell_point.y];
-
-                cell.SetStatus(!cell.GetStatus());
-
-                this.grid[(int) cell_point.x, (int) cell_point.y] = cell;
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            this.start = !this.start;
-            print("Started/Stopped");
-        }
-
-        if (this.start)
-        {
-            for (int i = 0; i < this.width; i++)
-            {
-                for (int j = 0; j < this.height; j++)
-                {
-                    this.futureGrid[i, j].SetStatus(this.grid[i, j].Update(this.CountAliveNeighbours(i, j)));
-                }
-            }
-
-            GridCell[,] temp = this.grid;
-            this.grid = this.futureGrid;
-            this.futureGrid = temp;
-        }
-    }
-
-    private void Initialize()
-    {
-        this.center = new Vector2(this.gameObject.transform.position.x, this.gameObject.transform.position.y);
-        this.offset = new Vector2(center.x - this.width / 2f, center.y - this.height / 2f);
+        this.width = width;
+        this.height = height;
+        
+        center = new Vector2(x, y);
+        offset = new Vector2(center.X - this.width / 2f, center.Y - this.height / 2f);
+        
         this.grid = new GridCell[this.width, this.height];
         this.futureGrid = new GridCell[this.width, this.height];
-        this.start = false;
-
+        
         for (int i = 0; i < this.width; i++)
         {
             for (int j = 0; j < this.height; j++)
@@ -80,40 +32,22 @@ public class Grid : MonoBehaviour
             }
         }
     }
+
+    public void Update()
+    {
+        for (int i = 0; i < this.width; i++)
+        {
+            for (int j = 0; j < this.height; j++)
+            {
+                this.futureGrid[i, j].SetStatus(this.grid[i, j].Update(this.CountAliveNeighbours(i, j)));
+            }
+        }
+        
+        GridCell[,] temp = this.grid;
+        this.grid = this.futureGrid;
+        this.futureGrid = temp;
+    }
     
-    private Vector2 GameToGridCoordinates(Vector2 point)
-    {
-        point -= this.offset + Vector2.one/2f;
-
-        return new Vector2((int) point.x, (int) point.y);
-    }
-
-    private Vector2 GridToGameCoordinates(Vector2 point)
-    {
-        point += this.offset + Vector2.one/2f;
-
-        return point;
-    }
-
-    private bool IsWithinGridBounds(Vector2 point)
-    {
-        float left_bound = this.center.x + this.offset.x;
-        float right_bound = this.center.x - this.offset.x;
-        float lower_bound = this.center.y + this.offset.y;
-        float upper_bound = this.center.y - this.offset.y;
-        
-        print(left_bound);
-        print(right_bound);
-        print(lower_bound);
-        print(upper_bound);
-        
-        
-        if (point.x >= left_bound && point.x <= right_bound &&
-            point.y >= lower_bound && point.y <= upper_bound)
-            return true;
-        return false;
-    }
-
     private int CountAliveNeighbours(int x, int y)
     {
         int count = 0;
@@ -137,21 +71,41 @@ public class Grid : MonoBehaviour
         
         return count;
     }
-
-    private void OnDrawGizmos()
+    
+    public static int[] GameToGridCoordinates(float x, float y)
     {
-        if (this.grid != null)
-        {
-            for (int i = 0; i < this.width; i++)
-            {
-                for (int j = 0; j < this.height; j++)
-                {
-                    Vector2 game_coordinates = this.GridToGameCoordinates(new Vector2(i, j));
-                    
-                    Gizmos.color = this.grid[i, j].GetStatus() ? Color.green : Color.black;
-                    Gizmos.DrawCube(new Vector3(game_coordinates.x, game_coordinates.y, 0), Vector3.one);
-                }
-            }
-        }
+        x -= offset.X + Vector2.One.X / 2f;
+        y -= offset.Y + Vector2.One.Y / 2f;
+
+        int[] rez = {(int)x, (int)y};
+        return rez;
+    }
+
+    public static int[] GridToGameCoordinates(float x, float y)
+    {
+        x += offset.X + Vector2.One.X / 2f;
+        y += offset.Y + Vector2.One.Y / 2f;
+        
+        int[] rez = {(int)x, (int)y};
+        return rez;
+    }
+
+    public static bool IsWithinGridBounds(float x, float y)
+    {
+        float left_bound = center.X + offset.X;
+        float right_bound = center.X - offset.X;
+        float lower_bound = center.Y + offset.Y;
+        float upper_bound = center.Y - offset.Y;
+
+        if (x >= left_bound && x <= right_bound &&
+            y >= lower_bound && y <= upper_bound)
+            return true;
+        return false;
+    }
+
+    public GridCell this[int i, int j]
+    {
+        get => this.grid[i, j];
+        set => this.grid[i, j] = value;
     }
 }
